@@ -12,14 +12,15 @@ import MapKit
 class CityListViewController: UIViewController {
     
     private var tableView: UITableView = UITableView()
+    private var searchBar: UISearchBar = UISearchBar()
     private lazy var mapView: MKMapView = {
         return MKMapView()
     }()
     
     let cellReuseIdentifier = "cellCity"
     
-    fileprivate var tableViewPortraitConstraint: NSLayoutConstraint!
-    fileprivate var tableViewLandscapeConstraint: NSLayoutConstraint!
+    fileprivate var portraitConstraints = [NSLayoutConstraint]()
+    fileprivate var landscapeConstraints = [NSLayoutConstraint]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,8 +28,13 @@ class CityListViewController: UIViewController {
         title = "Cities"
         view.backgroundColor = .white
         
+        setupSearchBar()
         setupTableView()
         setupLayout()
+    }
+    
+    private func setupSearchBar() {
+        view.addSubview(searchBar)
     }
     
     private func setupTableView() {
@@ -39,34 +45,41 @@ class CityListViewController: UIViewController {
     
     private func setupLayout() {
         if #available(iOS 11.0, *) {
-            tableViewPortraitConstraint = tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
-            tableView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.safeAreaLayoutGuide.leadingAnchor, bottom: view.bottomAnchor, trailing: nil)
+            searchBar.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.safeAreaLayoutGuide.leadingAnchor, bottom: nil, trailing: nil)
+            tableView.anchor(top: searchBar.bottomAnchor, leading: view.safeAreaLayoutGuide.leadingAnchor, bottom: view.bottomAnchor, trailing: nil)
+            
+            portraitConstraints.append(searchBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor))
+            portraitConstraints.append(tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor))
         } else {
-            tableViewPortraitConstraint = tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-            tableView.anchor(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: nil)
+            searchBar.anchor(top: view.topAnchor, leading: view.leadingAnchor, bottom: nil, trailing: nil)
+            tableView.anchor(top: searchBar.bottomAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: nil)
+            
+            portraitConstraints.append(searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor))
+            portraitConstraints.append(tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor))
         }
+        landscapeConstraints.append(searchBar.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -55))
+        landscapeConstraints.append(tableView.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -55))
         
-        tableViewLandscapeConstraint = tableView.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -55)
         setupOrientation()
-    }
-    
-    private func setupMapView() {
-        view.insertSubview(mapView, belowSubview: tableView)
-        mapView.anchor(top: view.topAnchor, leading: view.centerXAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, padding: UIEdgeInsets(top: 0, left: -50, bottom: 0, right: 0))
     }
     
     private func setupOrientation() {
         if UIDevice.current.orientation.isPortrait {
-            NSLayoutConstraint.deactivate([tableViewLandscapeConstraint])
-            NSLayoutConstraint.activate([tableViewPortraitConstraint])
+            NSLayoutConstraint.deactivate(landscapeConstraints)
+            NSLayoutConstraint.activate(portraitConstraints)
         } else {
             if !(mapView.isDescendant(of: view)) {
                 setupMapView()
             }
             
-            NSLayoutConstraint.deactivate([tableViewPortraitConstraint])
-            NSLayoutConstraint.activate([tableViewLandscapeConstraint])
+            NSLayoutConstraint.deactivate(portraitConstraints)
+            NSLayoutConstraint.activate(landscapeConstraints)
         }
+    }
+    
+    private func setupMapView() {
+        view.insertSubview(mapView, belowSubview: searchBar)
+        mapView.anchor(top: view.topAnchor, leading: view.centerXAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, padding: UIEdgeInsets(top: 0, left: -50, bottom: 0, right: 0))
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
