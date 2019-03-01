@@ -96,9 +96,15 @@ class CityListViewController: UIViewController {
         if UIDevice.current.orientation.isPortrait {
             NSLayoutConstraint.deactivate(landscapeConstraints)
             NSLayoutConstraint.activate(portraitConstraints)
+            
+            if let selectedIndex = tableView.indexPathForSelectedRow {
+                tableView.deselectRow(at: selectedIndex, animated: true)
+            }
         } else {
             if !(mapView.isDescendant(of: view)) {
                 setupMapView()
+            } else {
+                mapView.removeAnnotations(mapView.annotations)
             }
             
             NSLayoutConstraint.deactivate(portraitConstraints)
@@ -146,7 +152,9 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
         let city = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
 
         if UIDevice.current.orientation.isPortrait {
-            // Send to next view
+            let mapViewController = CityMapViewController(cityData: city)
+            navigationController?.pushViewController(mapViewController, animated: true)
+            tableView.deselectRow(at: indexPath, animated: true)
         } else {
             mapView.removeAnnotations(mapView.annotations)
 
