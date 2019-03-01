@@ -19,6 +19,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.makeKeyAndVisible()
         
+        let parse = Parser.parseCities()
+        if let error = parse.Error {
+            print(error)
+        } else {
+            
+        }
+        
+        
         let rootController = CityListViewController()
         let navigationController = UINavigationController(rootViewController: rootController)
         window?.rootViewController = navigationController
