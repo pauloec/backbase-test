@@ -13,20 +13,18 @@ enum MyError: Error {
 }
 
 struct Parser {
-    
-    static func parseCities() -> (List: [City]?, Error: MyError?) {
+    static func parseCities(completion: ([City]) -> Void, failure: (MyError) -> Void) {
         if let path = Bundle.main.path(forResource: "cities", ofType: "json") {
             do {
                 let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .alwaysMapped)
                 let cities = try JSONDecoder().decode([City].self, from: data)
                 
-                return (cities, nil)
+                completion(cities)
             } catch let error {
-                return (nil, MyError.runtimeError("Error Decoding Json:\(error)"))
+                failure(MyError.runtimeError("Error Decoding Json:\(error)"))
             }
         } else {
-            return (nil, MyError.runtimeError("File Not Found!"))
+            failure(MyError.runtimeError("File Not Found!"))
         }
     }
-    
 }

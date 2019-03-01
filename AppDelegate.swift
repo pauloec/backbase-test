@@ -13,26 +13,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.makeKeyAndVisible()
         
-        let rootViewController: UIViewController
+        var rootViewController: UIViewController = UIViewController()
         
-        let parse = Parser.parseCities()
-        if let cities = parse.List {
+        Parser.parseCities(completion: { cities in
             let viewModel = CityListViewModel(cities: cities)
             rootViewController = CityListViewController(viewModel: viewModel)
-        } else {
+        }, failure: { error in
             // Here we should do something to handle it
             // Probably a Alert or a completely new view
-            
             rootViewController = UIViewController()
             rootViewController.view.backgroundColor = .red
-            rootViewController.title = parse.Error?.localizedDescription
-        }
+            rootViewController.title = error.localizedDescription
+        })
         
         let navigationController = UINavigationController(rootViewController: rootViewController)
         window?.rootViewController = navigationController
