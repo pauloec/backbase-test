@@ -13,6 +13,7 @@ class CityListViewController: UIViewController {
     private let viewModel: CityListViewModel
     private var tableView: UITableView = UITableView()
     private var searchBar: UISearchBar = UISearchBar()
+    private var loadingView: UIActivityIndicatorView = UIActivityIndicatorView(style: .gray)
     private lazy var mapView: MKMapView = {
         return MKMapView()
     }()
@@ -27,7 +28,14 @@ class CityListViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         
         viewModel.didSearch = { [weak self] in
+            self?.loadingView.stopAnimating()
             self?.tableView.reloadData()
+            self?.tableView.isHidden = false
+        }
+        
+        viewModel.willSearch = { [weak self] in
+            self?.loadingView.startAnimating()
+            self?.tableView.isHidden = true
         }
     }
     
@@ -44,6 +52,7 @@ class CityListViewController: UIViewController {
         
         setupSearchBar()
         setupTableView()
+        setupLoading()
         setupLayout()
     }
     
@@ -56,6 +65,11 @@ class CityListViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(tableView)
+    }
+    
+    private func setupLoading() {
+        view.addSubview(loadingView)
+        loadingView.anchor(top: searchBar.bottomAnchor, leading: view.leadingAnchor, bottom: nil, trailing: nil)
     }
     
     private func setupLayout() {
