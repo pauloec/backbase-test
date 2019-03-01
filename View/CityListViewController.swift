@@ -13,6 +13,11 @@ class CityListViewController: UIViewController {
     private let viewModel: CityListViewModel
     private var tableView: UITableView = UITableView()
     private var searchBar: UISearchBar = UISearchBar()
+    private var backgroundSearch: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        return view
+    }()
     private var loadingView: UIActivityIndicatorView = UIActivityIndicatorView(style: .gray)
     private lazy var mapView: MKMapView = {
         return MKMapView()
@@ -26,17 +31,6 @@ class CityListViewController: UIViewController {
     init(viewModel: CityListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        
-        viewModel.didSearch = { [weak self] in
-            self?.loadingView.stopAnimating()
-            self?.tableView.reloadData()
-            self?.tableView.isHidden = false
-        }
-        
-        viewModel.willSearch = { [weak self] in
-            self?.loadingView.startAnimating()
-            self?.tableView.isHidden = true
-        }
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -69,7 +63,10 @@ class CityListViewController: UIViewController {
     
     private func setupLoading() {
         view.addSubview(loadingView)
+        view.insertSubview(backgroundSearch, belowSubview: searchBar)
+        loadingView.hidesWhenStopped = true
         loadingView.anchor(top: searchBar.bottomAnchor, leading: tableView.leadingAnchor, bottom: nil, trailing: nil)
+        backgroundSearch.anchor(top: tableView.topAnchor, leading: tableView.leadingAnchor, bottom: tableView.bottomAnchor, trailing: tableView.trailingAnchor)
     }
     
     private func setupLayout() {
@@ -106,14 +103,14 @@ class CityListViewController: UIViewController {
             } else {
                 mapView.removeAnnotations(mapView.annotations)
             }
-            
+
             NSLayoutConstraint.deactivate(portraitConstraints)
             NSLayoutConstraint.activate(landscapeConstraints)
         }
     }
     
     private func setupMapView() {
-        view.insertSubview(mapView, belowSubview: searchBar)
+        view.insertSubview(mapView, belowSubview: backgroundSearch)
         mapView.anchor(top: view.topAnchor, leading: view.centerXAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, padding: UIEdgeInsets(top: 0, left: -50, bottom: 0, right: 0))
     }
     
@@ -124,7 +121,13 @@ class CityListViewController: UIViewController {
     //MARK:- Private Helpers
     @objc func searchCity() {
         if let text = searchBar.text {
-            viewModel.searchCity(input: text)
+            loadingView.startAnimating()
+            tableView.isHidden = true
+            viewModel.searchCity(input: text, completion: { [weak self] in
+                self?.loadingView.stopAnimating()
+                self?.tableView.reloadData()
+                self?.tableView.isHidden = false
+            })
         }
     }
     
