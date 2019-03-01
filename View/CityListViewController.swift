@@ -17,7 +17,7 @@ class CityListViewController: UIViewController {
         return MKMapView()
     }()
     
-    let cellReuseIdentifier = "cellCity"
+    private let cellReuseIdentifier = "cellCity"
     
     fileprivate var portraitConstraints = [NSLayoutConstraint]()
     fileprivate var landscapeConstraints = [NSLayoutConstraint]()
@@ -25,12 +25,17 @@ class CityListViewController: UIViewController {
     init(viewModel: CityListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        
+        viewModel.didSearch = { [weak self] in
+            self?.tableView.reloadData()
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    //MARK:- UI
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -43,6 +48,7 @@ class CityListViewController: UIViewController {
     }
     
     private func setupSearchBar() {
+        searchBar.delegate = self
         view.addSubview(searchBar)
     }
     
@@ -95,11 +101,19 @@ class CityListViewController: UIViewController {
         setupOrientation()
     }
     
+    //MARK:- Private Helpers
+    @objc func searchCity() {
+        if let text = searchBar.text {
+            viewModel.searchCity(input: text)
+        }
+    }
+    
 }
 
+//MARK:- Extensions
 extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.cityList.count
+        return viewModel.isSearching ? viewModel.filteredList.count : viewModel.cityList.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -108,12 +122,19 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: cellReuseIdentifier)
         }
         
-        let city = viewModel.cityList[indexPath.row]
+        let city = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
         cell!.textLabel?.text = "\(city.name), \(city.country)"
         cell!.detailTextLabel?.text = "Latitude: \(city.coord.lat), Longitude: \(city.coord.lon)"
         return cell!
     }
 }
 
+extension CityListViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // We add some throttling to the search
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.searchCity), object: nil)
+        self.perform(#selector(self.searchCity), with: nil, afterDelay: 0.3)
+    }
+}
 
 
