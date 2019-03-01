@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 
 class CityListViewController: UIViewController {
-    
+    private let viewModel: CityListViewModel
     private var tableView: UITableView = UITableView()
     private var searchBar: UISearchBar = UISearchBar()
     private lazy var mapView: MKMapView = {
@@ -21,7 +21,16 @@ class CityListViewController: UIViewController {
     
     fileprivate var portraitConstraints = [NSLayoutConstraint]()
     fileprivate var landscapeConstraints = [NSLayoutConstraint]()
-
+    
+    init(viewModel: CityListViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -90,7 +99,7 @@ class CityListViewController: UIViewController {
 
 extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 2
+        return viewModel.cityList.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -99,8 +108,9 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: cellReuseIdentifier)
         }
         
-        cell!.textLabel?.text = "City"
-        cell!.detailTextLabel?.text = "Detail"
+        let city = viewModel.cityList[indexPath.row]
+        cell!.textLabel?.text = "\(city.name), \(city.country)"
+        cell!.detailTextLabel?.text = "Latitude: \(city.coord.lat), Longitude: \(city.coord.lon)"
         return cell!
     }
 }
