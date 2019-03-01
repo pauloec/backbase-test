@@ -11,16 +11,9 @@ import Foundation
 class CityListViewModel {
     let cityList: [City]
     var isSearching: Bool = false
+    var willSearch: (() -> ())?
     var didSearch: (() -> ())?
-    var filteredList: [City] = [] {
-        didSet {
-            if let didSearch = didSearch {
-                DispatchQueue.main.async {
-                    didSearch()
-                }
-            }
-        }
-    }
+    var filteredList: [City] = []
     private var querySearch: String = ""
 
     init(cities: [City]) {
@@ -34,7 +27,14 @@ class CityListViewModel {
             isSearching = false
             querySearch = ""
             filteredList.removeAll(keepingCapacity: false)
+            if let didSearch = self.didSearch {
+                didSearch()
+            }
         } else {
+            if let willSearch = willSearch {
+                willSearch()
+            }
+            
             isSearching = true
             filter(input: input, list: input.contains(querySearch) ? filteredList : cityList)
         }
@@ -60,6 +60,12 @@ class CityListViewModel {
             } else {
                 print("No Record")
                 self?.filteredList = []
+            }
+            
+            if let didSearch = self?.didSearch {
+                DispatchQueue.main.async {
+                    didSearch()
+                }
             }
         }
     }

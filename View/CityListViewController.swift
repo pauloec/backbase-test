@@ -13,6 +13,7 @@ class CityListViewController: UIViewController {
     private let viewModel: CityListViewModel
     private var tableView: UITableView = UITableView()
     private var searchBar: UISearchBar = UISearchBar()
+    private var loadingView: UIActivityIndicatorView = UIActivityIndicatorView(style: .gray)
     private lazy var mapView: MKMapView = {
         return MKMapView()
     }()
@@ -27,7 +28,14 @@ class CityListViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         
         viewModel.didSearch = { [weak self] in
+            self?.loadingView.stopAnimating()
             self?.tableView.reloadData()
+            self?.tableView.isHidden = false
+        }
+        
+        viewModel.willSearch = { [weak self] in
+            self?.loadingView.startAnimating()
+            self?.tableView.isHidden = true
         }
     }
     
@@ -44,6 +52,7 @@ class CityListViewController: UIViewController {
         
         setupSearchBar()
         setupTableView()
+        setupLoading()
         setupLayout()
     }
     
@@ -56,6 +65,11 @@ class CityListViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(tableView)
+    }
+    
+    private func setupLoading() {
+        view.addSubview(loadingView)
+        loadingView.anchor(top: searchBar.bottomAnchor, leading: tableView.leadingAnchor, bottom: nil, trailing: nil)
     }
     
     private func setupLayout() {
@@ -72,8 +86,8 @@ class CityListViewController: UIViewController {
             portraitConstraints.append(searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor))
             portraitConstraints.append(tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor))
         }
-        landscapeConstraints.append(searchBar.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -55))
-        landscapeConstraints.append(tableView.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -55))
+        landscapeConstraints.append(searchBar.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -50))
+        landscapeConstraints.append(tableView.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -50))
         
         setupOrientation()
     }
@@ -126,6 +140,23 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
         cell!.textLabel?.text = "\(city.name), \(city.country)"
         cell!.detailTextLabel?.text = "Latitude: \(city.coord.lat), Longitude: \(city.coord.lon)"
         return cell!
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let city = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
+
+        if UIDevice.current.orientation.isPortrait {
+            // Send to next view
+        } else {
+            mapView.removeAnnotations(mapView.annotations)
+
+            let coordinate = CLLocationCoordinate2D(latitude: city.coord.lat, longitude: city.coord.lon)
+            let annotation = MKPointAnnotation()
+            annotation.title = city.name
+            annotation.coordinate = coordinate
+            mapView.addAnnotation(annotation)
+            mapView.setCenter(coordinate, animated: true)
+        }
     }
 }
 
