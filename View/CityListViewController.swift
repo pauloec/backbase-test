@@ -143,8 +143,8 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         let city = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
-        cell!.textLabel?.text = "\(city.name), \(city.country)"
-        cell!.detailTextLabel?.text = "Latitude: \(city.coord.lat), Longitude: \(city.coord.lon)"
+        cell!.textLabel?.text = city.title
+        cell!.detailTextLabel?.text = city.subtitle
         return cell!
     }
     
@@ -158,9 +158,9 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
         } else {
             mapView.removeAnnotations(mapView.annotations)
 
-            let coordinate = CLLocationCoordinate2D(latitude: city.coord.lat, longitude: city.coord.lon)
+            let coordinate = CLLocationCoordinate2D(latitude: city.latitude, longitude: city.longitude)
             let annotation = MKPointAnnotation()
-            annotation.title = city.name
+            annotation.title = city.title
             annotation.coordinate = coordinate
             mapView.addAnnotation(annotation)
             mapView.setCenter(coordinate, animated: true)
