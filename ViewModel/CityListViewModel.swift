@@ -9,17 +9,21 @@
 import Foundation
 
 class CityListViewModel {
-    let cityList: [City]
+    let cityList: [CityViewModel]
     var isSearching: Bool = false
     var willSearch: (() -> ())?
     var didSearch: (() -> ())?
-    var filteredList: [City] = []
+    var filteredList: [CityViewModel] = []
     private var querySearch: String = ""
 
     init(cities: [City]) {
-        self.cityList = cities.sorted {
-            ($0.name.lowercased(), $0.country) < ($1.name.lowercased(), $1.country)
-        }
+        self.cityList = cities
+            .sorted {
+                ($0.name.lowercased(), $0.country) < ($1.name.lowercased(), $1.country)
+            }
+            .map({
+                return CityViewModel(city: $0)
+            })
     }
 
     func searchCity(input: String) {
@@ -40,16 +44,16 @@ class CityListViewModel {
         }
     }
     
-    private func filter(input: String, list: [City]) {
+    private func filter(input: String, list: [CityViewModel]) {
         querySearch = input
         let dispatchQueue = DispatchQueue(label: "Filter.array", qos: .background)
         dispatchQueue.async { [weak self] in
             let firstIndex = list.firstIndex(where: {
-                $0.name.lowercased().hasPrefix(input.lowercased())
+                $0.title.lowercased().hasPrefix(input.lowercased())
             })
             
             let lastIndex = list.lastIndex(where: {
-                $0.name.lowercased().hasPrefix(input.lowercased())
+                $0.title.lowercased().hasPrefix(input.lowercased())
             })
             
             if let firstIndex = firstIndex, let lastIndex = lastIndex {
