@@ -19,16 +19,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.makeKeyAndVisible()
         
+        let rootViewController: UIViewController
+        
         let parse = Parser.parseCities()
-        if let error = parse.Error {
-            print(error)
+        if let cities = parse.List {
+            let viewModel = CityListViewModel(cities: cities)
+            rootViewController = CityListViewController(viewModel: viewModel)
         } else {
+            // Here we should do something to handle it
+            // Probably a Alert or a completely new view
             
+            rootViewController = UIViewController()
+            rootViewController.view.backgroundColor = .red
+            rootViewController.title = parse.Error?.localizedDescription
         }
         
-        
-        let rootController = CityListViewController()
-        let navigationController = UINavigationController(rootViewController: rootController)
+        let navigationController = UINavigationController(rootViewController: rootViewController)
         window?.rootViewController = navigationController
         
         return true
