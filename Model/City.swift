@@ -8,11 +8,15 @@
 
 import Foundation
 
-struct City: Decodable {
+struct City: Decodable, Equatable {
     let _id: Int
     let name: String
     let country: String
     let coord: Coordinates
+    
+    static func ==(lhs:City, rhs:City) -> Bool {
+        return lhs._id == rhs._id
+    }
 }
 
 struct Coordinates: Decodable {
