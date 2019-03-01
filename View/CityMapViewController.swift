@@ -11,9 +11,9 @@ import MapKit
 
 class CityMapViewController: UIViewController {
     private let mapView: MKMapView = MKMapView()
-    private let cityData: City
+    private let cityData: CityViewModel
     
-    init(cityData: City) {
+    init(cityData: CityViewModel) {
         self.cityData = cityData
         super.init(nibName: nil, bundle: nil)
     }
@@ -26,7 +26,7 @@ class CityMapViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = cityData.name
+        title = cityData.title
         
         setupMapView()
     }
@@ -35,9 +35,9 @@ class CityMapViewController: UIViewController {
         view.addSubview(mapView)
         mapView.anchorSuperview()
         
-        let coordinate = CLLocationCoordinate2D(latitude: cityData.coord.lat, longitude: cityData.coord.lon)
+        let coordinate = CLLocationCoordinate2D(latitude: cityData.latitude, longitude: cityData.longitude)
         let annotation = MKPointAnnotation()
-        annotation.title = cityData.name
+        annotation.title = cityData.title
         annotation.coordinate = coordinate
         mapView.addAnnotation(annotation)
         mapView.setCenter(coordinate, animated: true)
