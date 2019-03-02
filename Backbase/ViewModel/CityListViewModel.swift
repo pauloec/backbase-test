@@ -13,6 +13,7 @@ class CityListViewModel {
     var filteredList: [CityViewModel] = []
     var isSearching: Bool = false
     private var querySearch: String = ""
+    private var searchWorkItem: DispatchWorkItem? = nil
 
     init(cities: [City]) {
         self.cityList = cities
@@ -25,8 +26,9 @@ class CityListViewModel {
     }
 
     func searchCity(input: String, completion: @escaping () -> Void) {
-        let dispatchQueue = DispatchQueue(label: "Filter.array", qos: .background)
-        dispatchQueue.async { [unowned self] in
+        searchWorkItem?.cancel()
+        
+        let searchWork = DispatchWorkItem {
             // Reset search in case of empty request
             if input == "" {
                 self.isSearching = false
@@ -41,11 +43,20 @@ class CityListViewModel {
             DispatchQueue.main.async {
                 completion()
             }
+            
+            self.searchWorkItem = nil
         }
+        
+        searchWorkItem = searchWork
+        let dispatchQueue = DispatchQueue(label: "Filter.array")
+        
+        // We filter valid search requests
+        dispatchQueue.asyncAfter(deadline: .now() + .milliseconds(750), execute: searchWork)
     }
     
     private func filter(input: String, list: [CityViewModel]) {
         querySearch = input
+        
         // Cities area already sorted, so finding the range is faster than filtering
         let firstIndex = list.firstIndex(where: {
             $0.title.lowercased().hasPrefix(input.lowercased())
@@ -58,9 +69,7 @@ class CityListViewModel {
         if let firstIndex = firstIndex, let lastIndex = lastIndex {
             filteredList.removeAll(keepingCapacity: false)
             filteredList.append(contentsOf: list[firstIndex...lastIndex])
-            print("First Index: \(firstIndex) Last Index: \(lastIndex)")
         } else {
-            print("No Record")
             filteredList = []
         }
     }
