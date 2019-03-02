@@ -58,6 +58,7 @@ class CityListViewController: UIViewController {
     private func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.register(CityCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         view.addSubview(tableView)
     }
     
@@ -127,34 +128,37 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        var cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier)
-        if cell == nil {
-            cell = UITableViewCell(style: .subtitle, reuseIdentifier: cellReuseIdentifier)
-        }
-        
-        let city = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
-        cell!.textLabel?.text = city.title
-        cell!.detailTextLabel?.text = city.subtitle
-        return cell!
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier) as! CityCell
+        let cityViewModel = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
+        cell.cityViewModel = cityViewModel
+        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let city = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
+        let cityViewModel = viewModel.isSearching ? viewModel.filteredList[indexPath.row] : viewModel.cityList[indexPath.row]
 
         if UIDevice.current.orientation.isPortrait {
-            let mapViewController = CityMapViewController(cityData: city)
+            let mapViewController = CityMapViewController(cityData: cityViewModel)
             navigationController?.pushViewController(mapViewController, animated: true)
             tableView.deselectRow(at: indexPath, animated: true)
         } else {
             mapView.removeAnnotations(mapView.annotations)
 
-            let coordinate = CLLocationCoordinate2D(latitude: city.latitude, longitude: city.longitude)
+            let coordinate = CLLocationCoordinate2D(latitude: cityViewModel.latitude, longitude: cityViewModel.longitude)
             let annotation = MKPointAnnotation()
-            annotation.title = city.title
+            annotation.title = cityViewModel.title
             annotation.coordinate = coordinate
             mapView.addAnnotation(annotation)
             mapView.setCenter(coordinate, animated: true)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        let aboutViewController = AboutViewController()
+        let presenter = Presenter(view: aboutViewController, model: Model())
+        aboutViewController.presenter = presenter
+        
+        navigationController?.pushViewController(aboutViewController, animated: true)
     }
 }
 
