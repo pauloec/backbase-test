@@ -118,19 +118,6 @@ class CityListViewController: UIViewController {
         setupOrientation()
     }
     
-    //MARK:- Private Helpers
-    @objc func searchCity() {
-        if let text = searchBar.text {
-            loadingView.startAnimating()
-            tableView.isHidden = true
-            viewModel.searchCity(input: text, completion: { [weak self] in
-                self?.loadingView.stopAnimating()
-                self?.tableView.reloadData()
-                self?.tableView.isHidden = false
-            })
-        }
-    }
-    
 }
 
 //MARK:- Extensions
@@ -173,9 +160,15 @@ extension CityListViewController: UITableViewDelegate, UITableViewDataSource {
 
 extension CityListViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        // We add some throttling to the search
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.searchCity), object: nil)
-        self.perform(#selector(self.searchCity), with: nil, afterDelay: 0.3)
+        if let text = searchBar.text {
+            loadingView.startAnimating()
+            tableView.isHidden = true
+            viewModel.searchCity(input: text, completion: { [weak self] in
+                self?.loadingView.stopAnimating()
+                self?.tableView.reloadData()
+                self?.tableView.isHidden = false
+            })
+        }
     }
 }
 
