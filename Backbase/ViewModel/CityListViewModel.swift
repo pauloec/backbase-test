@@ -13,7 +13,7 @@ class CityListViewModel {
     var filteredList: [CityViewModel] = []
     var isSearching: Bool = false
     private var querySearch: String = ""
-    private var searchWorkItem: DispatchWorkItem? = nil
+    private var searchWorkItem: DispatchWorkItem?
 
     init(cities: [City]) {
         self.cityList = cities
@@ -28,7 +28,7 @@ class CityListViewModel {
     func searchCity(input: String, completion: @escaping () -> Void) {
         searchWorkItem?.cancel()
         
-        let searchWork = DispatchWorkItem {
+        let searchWork = DispatchWorkItem { [unowned self] in
             // Reset search in case of empty request
             if input == "" {
                 self.isSearching = false
