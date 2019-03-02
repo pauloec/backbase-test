@@ -55,7 +55,7 @@ class BackbaseTests: XCTestCase {
     func testSearchNoRecord() {
         let expectation = XCTestExpectation(description: "Filtered Cities")
         
-        cityListViewModel.searchCity(input: "&^%%!", completion: {
+        cityListViewModel.searchCity(input: "😱", completion: {
             expectation.fulfill()
         })
         
